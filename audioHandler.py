@@ -11,6 +11,13 @@ class AudioHandler():
         self.RATE = 44100
         
         self.energyQueue = deque([], 43)
+        self.beatQueue = deque([], 430)
+        self.energyAverage = 0
+        
+        for i in range(0, 42):
+            self.energyQueue.appendleft(0)
+            for i in range(0, 9):
+                self.beatQueue.appendleft(False)
 
         self.pa = PyAudio()
         self.full_data = np.array([])
@@ -40,5 +47,16 @@ class AudioHandler():
             energy += audio_data[i]**2
             
         self.energyQueue.appendleft(math.sqrt(energy))
+        
+        total = 0
+        for v in self.energyQueue:
+            total += v
+            
+        self.energyAverage = total / 43
+        
+        if energy > self.energyAverage * 3 and self.energyQueue[1] < self.energyAverage * 1.5 and not self.beatQueue[1] and not self.beatQueue[2]:
+            self.beatQueue.appendleft(True)
+        else:
+            self.beatQueue.appendleft(False)
         
         return (audio_data, paContinue)
