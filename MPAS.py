@@ -62,28 +62,33 @@ class MPASApp(QtGui.QMainWindow):
         intervals = []
         
         count = 0
+        first = True
         for b in beats:
             count += 1
             
             if b:
-                intervals.append(count)
+                if first:
+                    first = False
+                else:
+                    intervals.append(count)
+                    
                 count = 0
                 
         print(intervals)
                 
-        avg = 0
+        avg = 0.0
         for i in intervals:
             avg += i
             
-        avg = avg / len(intervals)
+        if len(intervals) > 0:
+            avg = avg / len(intervals)
         
-        print(avg)
+        #print(avg)
         
-        seconds = avg * 0.0116
-        
-        bps = 1 / seconds
-        
-        self.bpm = bps * 60
+        if avg > 0:
+            self.bpm = 60.0 / ((avg * 1024.0)/44100.0)
+        else:
+            self.bpm = -1
         
 def main():
     app = QtGui.QApplication(sys.argv)

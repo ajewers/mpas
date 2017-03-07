@@ -13,6 +13,7 @@ class AudioHandler():
         self.energyQueue = deque([], 43)
         self.beatQueue = deque([], 430)
         self.energyAverage = 0
+        self.energyThreshold = 0
         
         for i in range(0, 42):
             self.energyQueue.appendleft(0)
@@ -23,7 +24,7 @@ class AudioHandler():
         self.full_data = np.array([])
         
         self.stream = self.pa.open(format = paFloat32,
-                                   channels = 2,
+                                   channels = 1,
                                    rate = 44100,
                                    input = True,
                                    output = True,
@@ -41,22 +42,37 @@ class AudioHandler():
             print("Playback Error: %i" % flag)
         
         audio_data = np.fromstring(in_data, dtype=np.float32)
+        
+        # Calculate energy value for this block
         energy = 0;
-    
         for i in xrange(0, len(audio_data) - 1):
             energy += audio_data[i]**2
-            
-        self.energyQueue.appendleft(math.sqrt(energy))
         
+        # Append energy value to queue
+        self.energyQueue.appendleft(energy)
+        
+        # Calculate average energy for the values in the queue
         total = 0
-        for v in self.energyQueue:
-            total += v
+        for e in self.energyQueue:
+            total += e
             
         self.energyAverage = total / 43
         
-        if energy > self.energyAverage * 3 and self.energyQueue[1] < self.energyAverage * 1.5 and not self.beatQueue[1] and not self.beatQueue[2]:
+        # Calculate variance
+        MSE = 0
+        for e in self.energyQueue:
+            MSE += (e - self.energyAverage)**2
+        
+        variance = MSE / 43
+        
+        # Calculate beat detection threshold
+        self.energyThreshold = (-0.0000015 * variance) + 1.5142857
+        
+        # If the energy exceeds the average x threshold, detect a beat
+        if energy > 1.0 and energy > self.energyAverage * self.energyThreshold and not self.beatQueue[0] and not self.beatQueue[1] and not self.beatQueue[2] and not self.beatQueue[3] and not self.beatQueue[4]:
             self.beatQueue.appendleft(True)
         else:
             self.beatQueue.appendleft(False)
         
         return (audio_data, paContinue)
+        
