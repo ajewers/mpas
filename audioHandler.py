@@ -7,19 +7,21 @@ import copy
 from collections import deque
 
 class AudioHandler():
-    def __init__(self):
+    def __init__(self, newBlock):
         self.CHANNLES = 1
         self.RATE = 44100
         
         self.energyQueue = deque([], 43)
-        self.beatQueue = deque([], 430)
+        self.peakQueue = deque([], 430)
         self.energyAverage = 0
         self.energyThreshold = 0
+        
+        self.newBlock = newBlock
         
         for i in range(0, 42):
             self.energyQueue.appendleft(0)
             for i in range(0, 9):
-                self.beatQueue.appendleft(False)
+                self.peakQueue.appendleft(False)
 
         self.pa = PyAudio()
         self.full_data = np.array([])
@@ -67,27 +69,29 @@ class AudioHandler():
         variance = MSE / 43
         
         # Calculate beat detection threshold
-        self.energyThreshold = (-0.0000015 * variance) + 1.5142857
+        self.energyThreshold = (-0.000026 * variance) + 1.5142857
         
         # If the energy exceeds the average x threshold, detect a beat
-        if energy > 1.0 and energy > self.energyAverage * self.energyThreshold and not self.beatQueue[0] and not self.beatQueue[1] and not self.beatQueue[2] and not self.beatQueue[3] and not self.beatQueue[4]:
-            self.beatQueue.appendleft(True)
+        if energy > 1.0 and energy > self.energyAverage * self.energyThreshold and not self.peakQueue[0] and not self.peakQueue[1] and not self.peakQueue[2] and not self.peakQueue[3] and not self.peakQueue[4]:
+            self.peakQueue.appendleft(True)
         else:
-            self.beatQueue.appendleft(False)
+            self.peakQueue.appendleft(False)
+            
+        self.newBlock()
         
         return (audio_data, paContinue)
         
     def calculateTempo(self, parent):
-        beats = copy.deepcopy(self.beatQueue)
+        peaks = copy.deepcopy(self.peakQueue)
         
         intervals = []
         
         count = 0
         first = True
-        for b in beats:
+        for p in peaks:
             count += 1
             
-            if b:
+            if p:
                 if count > 10:
                     if first:
                         first = False
@@ -96,16 +100,12 @@ class AudioHandler():
                     
                     count = 0
                 
-        print(intervals)
-                
         avg = 0.0
         for i in intervals:
             avg += i
             
         if len(intervals) > 0:
             avg = avg / len(intervals)
-        
-        #print(avg)
         
         if avg > 0:
             parent.bpm = 60.0 / ((avg * 1024.0)/44100.0)

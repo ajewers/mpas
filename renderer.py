@@ -14,9 +14,9 @@ class Renderer():
         tempoButton.render(qp, QtCore.Qt.black)
         metroButton.render(qp, QtCore.Qt.black)
     
-    def renderTempoDetect(self, qp, energyQueue, beatQueue, energyAverage, bpm, backButton):
+    def renderTempoDetect(self, qp, energyQueue, peakQueue, energyAverage, bpm, backButton):
         for i, e in enumerate(energyQueue):
-            if beatQueue[i]:
+            if peakQueue[i]:
                 qp.setPen(QPen(QtCore.Qt.red, 10))
             else:
                 qp.setPen(QPen(QtCore.Qt.black, 10))
@@ -36,5 +36,39 @@ class Renderer():
             
         backButton.render(qp, QtCore.Qt.black)
         
-    def renderLiveMetronome(self, qp, backButton):
+    def renderLiveMetronome(self, qp, backButton, metro):
         backButton.render(qp, QtCore.Qt.black)
+        metro.tempoUpButton.render(qp, QtCore.Qt.black)
+        metro.tempoDownButton.render(qp, QtCore.Qt.black)
+        metro.tempoUpPlusButton.render(qp, QtCore.Qt.black)
+        metro.tempoDownPlusButton.render(qp, QtCore.Qt.black)
+        qp.drawText(1200, 110, 1000, 1000, 0, "BPM: " + str(metro.bpm))
+        
+        qp.setPen(QPen(QtCore.Qt.gray, 10))
+        for i, e in enumerate(metro.energyQueue):
+            height = 10 * e
+            if height > 200:
+                height = 200
+            
+            qp.drawLine(800 - (i * 10), 700, 800 - (i * 10), 700 - height)
+        
+        qp.setPen(QPen(QtCore.Qt.black, 10))
+        qp.drawLine(10, 700, 1590, 700)
+        qp.drawLine(800, 400, 800, 700)
+        
+        qp.drawLine(10, 800, 1590, 800)
+        qp.drawLine(800, 800, 800, 1100)
+        
+        for i, p in enumerate(metro.peakQueue):
+            if i > 85:
+                break
+        
+            if p:
+                qp.drawLine(800 - (i * 10), 400, 800 - (i * 10), 700)
+                
+        beatQueue = copy.deepcopy(metro.beatQueue)
+        for i, b in enumerate(beatQueue):
+            if b:
+                qp.drawLine(800 + ((i - 86) * 10), 800, 800 + ((i - 86) * 10), 1100)
+                
+        
