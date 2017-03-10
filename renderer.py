@@ -1,5 +1,6 @@
 import sys
 import copy
+import math
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import QPen, QFont
 
@@ -64,11 +65,26 @@ class Renderer():
                 break
         
             if p:
-                qp.drawLine(800 - (i * 10), 400, 800 - (i * 10), 700)
+                x = 800 - (i * 10)
+                qp.drawLine(x, 400, x, 700)
+                
+                diff = metro.getAccuracy(i) - 1
+                if math.fabs(diff) < 20:
+                    if math.fabs(diff) < 3:
+                        qp.setPen(QPen(QtCore.Qt.green, 10))
+                    elif math.fabs(diff) < 10:
+                        qp.setPen(QPen(QtCore.Qt.darkYellow, 10))
+                    else:
+                        qp.setPen(QPen(QtCore.Qt.red, 10))
+                        
+                    qp.drawLine(x, 700, x, 740)
+                    qp.drawLine(x - (diff * 10), 760, x - (diff * 10), 800)
+                    
+                    qp.setPen(QPen(QtCore.Qt.black, 10))
                 
         beatQueue = copy.deepcopy(metro.beatQueue)
         for i, b in enumerate(beatQueue):
             if b:
-                qp.drawLine(800 + ((i - 86) * 10), 800, 800 + ((i - 86) * 10), 1100)
+                qp.drawLine(800 - ((i - 86) * 10), 800, 800 - ((i - 86) * 10), 1100)
                 
         

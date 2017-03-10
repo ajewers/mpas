@@ -83,7 +83,6 @@ class MPASApp(QtGui.QMainWindow):
         elif self.mode == Mode.LIVE_METRONOME:
             self.metro.peakQueue = copy.deepcopy(self.audioHandler.peakQueue)
             self.metro.energyQueue = copy.deepcopy(self.audioHandler.energyQueue)
-            self.metro.tick()
     
         # Re-draw the UI
         self.repaint()

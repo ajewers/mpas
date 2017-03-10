@@ -1,4 +1,5 @@
 import sys
+import math
 from collections import deque
 from button import Button
 
@@ -8,7 +9,7 @@ class LiveMetronome():
         self.energyQueue = deque([], 43)
         self.beatQueue = deque([], 172)
         for i in range(0, 171):
-            self.beatQueue.append(False)
+            self.beatQueue.appendleft(False)
         
         self.bpm = 100
         self.beatInterval = int((60.0 / self.bpm) * (44100.0 / 1024.0))
@@ -19,19 +20,38 @@ class LiveMetronome():
         self.tempoDownButton = Button(1200, 210, 60, 60, " -", True)
         self.tempoDownPlusButton = Button(1280, 210, 60, 60, "--", True)
         
-    def tick(self):
-        donothing = 1
-        
     def newBlock(self):
         self.count -= 1
         
         if self.count == 0:
             self.count = self.beatInterval
-            self.beatQueue.append(True)
+            self.beatQueue.appendleft(True)
         else:
-            self.beatQueue.append(False)
+            self.beatQueue.appendleft(False)
+        
+    def getAccuracy(self, peakIndex):
+        # Find the nearest beat to the peak at the given index.
+        # Indexes higher than 85 are out of range
+        if peakIndex > 85:
+            return -1000
+        
+        index = peakIndex + 85
+        poscount = 0
+        while index < len(self.beatQueue) and not self.beatQueue[index]:
+            index += 1
+            poscount += 1
             
-        self.beatQueue.popleft()
+        index = peakIndex + 85
+        negcount = 0
+        while index >= 0 and not self.beatQueue[index]:
+            index -= 1
+            negcount -= 1
+            
+        if math.fabs(negcount) < poscount:
+            return negcount
+        else:
+            return poscount
+        
         
     def checkHover(self, mouse):
         self.tempoUpButton.checkHover(mouse)
