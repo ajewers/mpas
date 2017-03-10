@@ -2,6 +2,7 @@ from pyaudio import PyAudio, paFloat32, paContinue
 import numpy as np
 import time
 import math
+import copy
 
 from collections import deque
 
@@ -75,4 +76,39 @@ class AudioHandler():
             self.beatQueue.appendleft(False)
         
         return (audio_data, paContinue)
+        
+    def calculateTempo(self, parent):
+        beats = copy.deepcopy(self.beatQueue)
+        
+        intervals = []
+        
+        count = 0
+        first = True
+        for b in beats:
+            count += 1
+            
+            if b:
+                if count > 10:
+                    if first:
+                        first = False
+                    else:
+                        intervals.append(count)
+                    
+                    count = 0
+                
+        print(intervals)
+                
+        avg = 0.0
+        for i in intervals:
+            avg += i
+            
+        if len(intervals) > 0:
+            avg = avg / len(intervals)
+        
+        #print(avg)
+        
+        if avg > 0:
+            parent.bpm = 60.0 / ((avg * 1024.0)/44100.0)
+        else:
+            parent.bpm = -1
         

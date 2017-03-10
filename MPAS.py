@@ -2,24 +2,38 @@ import sys
 import copy
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import QTimer
-from PyQt4.QtGui import QPen
+from PyQt4.QtGui import QPen, QFont
 from audioHandler import AudioHandler
+from renderer import Renderer
+from button import Button
+
+class Mode():
+    MAIN_MENU =         1
+    TEMPO_DETECT =      2
+    LIVE_METRONOME =    3
 
 class MPASApp(QtGui.QMainWindow):
     def __init__(self):
         super(MPASApp, self).__init__()
         
-        self.y = 0
+        self.mode = Mode.MAIN_MENU
+        self.mouse = [0, 0]
         
         self.bpm = 0.0
         
         self.audioHandler = AudioHandler()
+        self.renderer = Renderer()
+        self.tempoButton = Button(900, 400, 400, 60, "Tempo Detection")
+        self.metroButton = Button(900, 500, 400, 60, "Live Metronome")
+        self.backButton = Button(10, 10, 120, 60, "Back")
         
         self.initUI()
         
         self.timer = QTimer()
         self.timer.timeout.connect(self.tick)
         self.timer.start(16)
+        
+        self.setMouseTracking(True)
         
     def initUI(self):
         self.setGeometry(300, 300, 1600, 900)
@@ -30,65 +44,52 @@ class MPASApp(QtGui.QMainWindow):
         qp = QtGui.QPainter()
         qp.begin(self)
         
-        queueCopy = copy.deepcopy(self.audioHandler.energyQueue)
+        # Main Menu
+        if self.mode == Mode.MAIN_MENU:
+            self.renderer.renderMainMenu(qp, self.tempoButton, self.metroButton)
         
-        for i, e in enumerate(queueCopy):
-            if self.audioHandler.beatQueue[i]:
-                qp.setPen(QPen(QtCore.Qt.red, 10))
-            else:
-                qp.setPen(QPen(QtCore.Qt.black, 10))
-            
-            qp.drawLine(100 + i * 10, 800, 100 + i * 10, 800 - 200 * e)
+        # Tempo Detection
+        elif self.mode == Mode.TEMPO_DETECT:
+            energyQueue = copy.deepcopy(self.audioHandler.energyQueue)
+            beatQueue = copy.deepcopy(self.audioHandler.beatQueue)
+            self.renderer.renderTempoDetect(qp, energyQueue, beatQueue, self.audioHandler.energyAverage, self.bpm, self.backButton)
         
-        qp.setPen(QPen(QtCore.Qt.black, 3))
-        qp.drawLine(1000, 800, 1000, 800 - 200 * self.audioHandler.energyAverage)
-        qp.drawText(1000, 850, 200, 40, 0, "" + str(self.audioHandler.energyAverage))
+        # Live Metronome
+        elif self.mode == Mode.LIVE_METRONOME:
+            self.renderer.renderLiveMetronome(qp, self.backButton)
         
-        qp.drawText(1200, 450, 400, 40, 0, "BPM: " + str(self.bpm))
-            
+        
         qp.end()
         
     def tick(self):
-        self.y = self.y + 1
         self.repaint()
-        self.calculateTempo()
+        
+        if self.mode == Mode.MAIN_MENU:
+            self.tempoButton.checkHover(self.mouse)
+            self.metroButton.checkHover(self.mouse)
+        else:
+            self.backButton.checkHover(self.mouse)
+        
+        if self.mode == Mode.TEMPO_DETECT:
+            self.audioHandler.calculateTempo(self)
         
     def closeEvent(self, event):
         self.audioHandler.close()
         
-    def calculateTempo(self):
-        beats = copy.deepcopy(self.audioHandler.beatQueue)
+    def mouseMoveEvent(self, event):
+        self.mouse = [event.pos().x(), event.pos().y()]
         
-        intervals = []
-        
-        count = 0
-        first = True
-        for b in beats:
-            count += 1
-            
-            if b:
-                if first:
-                    first = False
-                else:
-                    intervals.append(count)
-                    
-                count = 0
+    def mousePressEvent(self, QMouseEvent):
+        if self.mode == Mode.MAIN_MENU:
+            if self.tempoButton.hover:
+                self.mode = Mode.TEMPO_DETECT
+            elif self.metroButton.hover:
+                self.mode = Mode.LIVE_METRONOME#
                 
-        print(intervals)
-                
-        avg = 0.0
-        for i in intervals:
-            avg += i
-            
-        if len(intervals) > 0:
-            avg = avg / len(intervals)
-        
-        #print(avg)
-        
-        if avg > 0:
-            self.bpm = 60.0 / ((avg * 1024.0)/44100.0)
         else:
-            self.bpm = -1
+            if self.backButton.hover:
+                self.mode = Mode.MAIN_MENU
+    
         
 def main():
     app = QtGui.QApplication(sys.argv)
