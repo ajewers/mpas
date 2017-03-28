@@ -32,7 +32,7 @@ class MPASApp(QtGui.QMainWindow):
         self.metro = ActiveMetronome()
         
         # Audio handler class instance
-        self.audioHandler = AudioHandler(self.metro.newBlock)
+        self.audioHandler = AudioHandler(self.metro.newChunk)
         
         # Set metronome audio handler reference
         self.metro.setAudioHandlerRef(self.audioHandler)
@@ -131,14 +131,16 @@ class MPASApp(QtGui.QMainWindow):
                 
         else:
             if self.backButton.hover:
+                # Return to main menu mode
                 self.mode = Mode.MAIN_MENU
                 self.backButton.hover = False
                 self.metro.active = False
                 
+        # If in active metronome mode, pass mouse clicks through
         if self.mode == Mode.ACTIVE_METRONOME:
             self.metro.mousePressEvent()
     
-        
+# Main function launches application
 def main():
     app = QtGui.QApplication(sys.argv)
     w = MPASApp()

@@ -7,28 +7,40 @@ import copy
 
 from collections import deque
 
+# Audio handler class for managing PyAudio input and output streams
+# and performing audio processing for peak detection.
 class AudioHandler():
-    def __init__(self, newBlock):
+    def __init__(self, newChunk):
+        # Constants
         self.CHANNLES = 1
         self.RATE = 44100
         
+        # Queue of energy values, 1s @ 44.1 kHz / 1024 chunk size = 43 elements
         self.energyQueue = deque([], 43)
+        
+        # Queue of detected energy peaks. 10s long
         self.peakQueue = deque([], 430)
+        
+        # Energy average and threshold values
         self.energyAverage = 0
         self.energyThreshold = 0
         
-        self.newBlock = newBlock
+        # New chunk function - to be called every time a new chunk arrives
+        self.newChunk = newChunk
         
+        # Metronome click sound, loaded from a wav file
         self.metroClick = wave.open("MetroClick.wav", 'rb')
         
+        # Fill the energy and peak queues with zeros
         for i in range(0, 42):
             self.energyQueue.appendleft(0)
             for i in range(0, 9):
                 self.peakQueue.appendleft(False)
 
+        # Initialise PyAudio instance
         self.pa = PyAudio()
-        self.full_data = np.array([])
         
+        # Open the real time input stream in callback mode
         self.stream = self.pa.open(format = paFloat32,
                                    channels = 1,
                                    rate = 44100,
@@ -36,23 +48,29 @@ class AudioHandler():
                                    output = False,
                                    frames_per_buffer = 1024,
                                    stream_callback = self.callback)
-                  
+        
+        # Start the input stream
         self.stream.start_stream()
         
+        # Open the output stream for playing the metronome click
         self.clickStream = self.pa.open(format = self.pa.get_format_from_width(self.metroClick.getsampwidth()),
                                         channels = self.metroClick.getnchannels(),
                                         rate = self.metroClick.getframerate(),
                                         output = True)
-                     
+    
+    # Called to close the streams gracefully upon exit
     def close(self):
         self.stream.close()
         self.clickStream.close()
         self.pa.terminate()
 
+    # Calback function for input stream
     def callback(self, in_data, frame_count, time_info, flag):
+        # Check error flag
         if flag:
             print("Playback Error: %i" % flag)
         
+        # Get the raw audio data
         audio_data = np.fromstring(in_data, dtype=np.float32)
         
         # Calculate energy value for this block
@@ -86,15 +104,20 @@ class AudioHandler():
         else:
             self.peakQueue.appendleft(False)
             
-        self.newBlock()
+        # Call the new chunk function
+        self.newChunk()
         
         return (audio_data, paContinue)
         
+    # Calculates an estimate of the tempo based on detected peaks
     def calculateTempo(self, parent):
+        # Deep copy to avoid threading issues
         peaks = copy.deepcopy(self.peakQueue)
         
+        # Array of interval lengths
         intervals = []
         
+        # Loop through peaks measuring intervals
         count = 0
         first = True
         for p in peaks:
@@ -109,6 +132,7 @@ class AudioHandler():
                     
                     count = 0
                 
+        # Calculate the average interval
         avg = 0.0
         for i in intervals:
             avg += i
@@ -116,20 +140,21 @@ class AudioHandler():
         if len(intervals) > 0:
             avg = avg / len(intervals)
         
+        # Calculate the BPM based on the average inter-peak interval
         if avg > 0:
             parent.bpm = 60.0 / ((avg * 1024.0)/44100.0)
         else:
             parent.bpm = -1
             
+    # Plays the metronome click sound
     def playClick(self):
-        # read data (based on the chunk size)
+        # Ensure reading starts from beggining of file
+        self.metroClick.rewind()
+    
+        # Read one chunk of data from the wav file
         data = self.metroClick.readframes(1024)
 
-        # play stream (looping from beginning of file to the end)
+        # While data remains in the file write it into the stream and read the next chunk
         while data != '':
-            # writing to the stream is what *actually* plays the sound.
             self.clickStream.write(data)
             data = self.metroClick.readframes(1024)
-            
-        self.metroClick.rewind()
-        
