@@ -15,10 +15,10 @@ class LiveMetronome():
         self.beatInterval = int((60.0 / self.bpm) * (44100.0 / 1024.0))
         self.count = self.beatInterval
         
-        self.tempoUpButton = Button(1200, 10, 60, 60, " +", True)
-        self.tempoUpPlusButton = Button(1280, 10, 60, 60, "++", True)
-        self.tempoDownButton = Button(1200, 210, 60, 60, " -", True)
-        self.tempoDownPlusButton = Button(1280, 210, 60, 60, "--", True)
+        self.tempoUpButton = Button(1200, 10, 60, 60, "+", True)
+        self.tempoUpPlusButton = Button(1280, 10, 80, 60, "++", True)
+        self.tempoDownButton = Button(1200, 210, 60, 60, "-", True)
+        self.tempoDownPlusButton = Button(1280, 210, 80, 60, " --", True)
         
     def newBlock(self):
         self.count -= 1

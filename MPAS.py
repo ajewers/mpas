@@ -28,9 +28,9 @@ class MPASApp(QtGui.QMainWindow):
 
         self.renderer = Renderer()
         
-        self.tempoButton = Button(900, 400, 400, 60, "Tempo Detection", False)
-        self.metroButton = Button(900, 500, 400, 60, "Live Metronome", False)
-        self.backButton = Button(10, 10, 120, 60, "Back", False)
+        self.tempoButton = Button(900, 400, 380, 60, "Tempo Detection", False)
+        self.metroButton = Button(900, 500, 380, 60, "Live Metronome", False)
+        self.backButton = Button(10, 10, 130, 60, "Back", False)
         
         self.initUI()
         

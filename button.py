@@ -35,7 +35,7 @@ class Button():
         else:
             qp.drawRect(self.x, self.y, self.width, self.height)
             
-        qp.drawText(self.x + 5, self.y, self.width, self.height, 0, self.text)
+        qp.drawText(self.x + 10, self.y, self.width, self.height, 0, self.text)
         
     def renderSmall(self, qp, colour):
         if self.hover:
@@ -44,5 +44,5 @@ class Button():
         else:
             qp.drawRect(self.x, self.y, self.width, self.height)
             
-        qp.drawText(self.x + 5, self.y, self.width, self.height, 0, self.text)
+        qp.drawText(self.x + 10, self.y, self.width, self.height, 0, self.text)
         
