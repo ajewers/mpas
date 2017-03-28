@@ -3,7 +3,7 @@ import math
 from collections import deque
 from button import Button
 
-class LiveMetronome():
+class ActiveMetronome():
     def __init__(self):
         self.peakQueue = deque([], 430)
         self.energyQueue = deque([], 43)
@@ -16,9 +16,14 @@ class LiveMetronome():
         self.count = self.beatInterval
         
         self.tempoUpButton = Button(1200, 10, 60, 60, "+", True)
-        self.tempoUpPlusButton = Button(1280, 10, 80, 60, "++", True)
+        self.tempoUpPlusButton = Button(1330, 10, 80, 60, "++", True)
         self.tempoDownButton = Button(1200, 210, 60, 60, "-", True)
-        self.tempoDownPlusButton = Button(1280, 210, 80, 60, " --", True)
+        self.tempoDownPlusButton = Button(1330, 210, 80, 60, " --", True)
+        
+        self.active = False
+        
+    def setAudioHandlerRef(self, audioHandler):
+        self.audioHandler = audioHandler
         
     def newBlock(self):
         self.count -= 1
@@ -28,6 +33,9 @@ class LiveMetronome():
             self.beatQueue.appendleft(True)
         else:
             self.beatQueue.appendleft(False)
+        
+        if self.beatQueue[81] and self.active:
+            self.audioHandler.playClick()
         
     def getAccuracy(self, peakIndex):
         # Find the nearest beat to the peak at the given index.

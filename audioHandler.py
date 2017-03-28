@@ -1,4 +1,5 @@
 from pyaudio import PyAudio, paFloat32, paContinue
+import wave
 import numpy as np
 import time
 import math
@@ -18,6 +19,8 @@ class AudioHandler():
         
         self.newBlock = newBlock
         
+        self.metroClick = wave.open("MetroClick.wav", 'rb')
+        
         for i in range(0, 42):
             self.energyQueue.appendleft(0)
             for i in range(0, 9):
@@ -30,14 +33,20 @@ class AudioHandler():
                                    channels = 1,
                                    rate = 44100,
                                    input = True,
-                                   output = True,
+                                   output = False,
                                    frames_per_buffer = 1024,
                                    stream_callback = self.callback)
                   
         self.stream.start_stream()
+        
+        self.clickStream = self.pa.open(format = self.pa.get_format_from_width(self.metroClick.getsampwidth()),
+                                        channels = self.metroClick.getnchannels(),
+                                        rate = self.metroClick.getframerate(),
+                                        output = True)
                      
     def close(self):
         self.stream.close()
+        self.clickStream.close()
         self.pa.terminate()
 
     def callback(self, in_data, frame_count, time_info, flag):
@@ -111,4 +120,16 @@ class AudioHandler():
             parent.bpm = 60.0 / ((avg * 1024.0)/44100.0)
         else:
             parent.bpm = -1
+            
+    def playClick(self):
+        # read data (based on the chunk size)
+        data = self.metroClick.readframes(1024)
+
+        # play stream (looping from beginning of file to the end)
+        while data != '':
+            # writing to the stream is what *actually* plays the sound.
+            self.clickStream.write(data)
+            data = self.metroClick.readframes(1024)
+            
+        self.metroClick.rewind()
         

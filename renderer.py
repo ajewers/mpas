@@ -37,7 +37,7 @@ class Renderer():
             
         backButton.render(qp, QtCore.Qt.black)
         
-    def renderLiveMetronome(self, qp, backButton, metro):
+    def renderActiveMetronome(self, qp, backButton, metro):
         backButton.render(qp, QtCore.Qt.black)
         metro.tempoUpButton.render(qp, QtCore.Qt.black)
         metro.tempoDownButton.render(qp, QtCore.Qt.black)

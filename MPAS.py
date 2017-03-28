@@ -6,46 +6,65 @@ from PyQt4.QtGui import QPen, QFont
 from audioHandler import AudioHandler
 from renderer import Renderer
 from button import Button
-from liveMetronome import LiveMetronome
+from activeMetronome import ActiveMetronome
 
+# Enumeration of the different modes (states)
 class Mode():
     MAIN_MENU =         1
     TEMPO_DETECT =      2
-    LIVE_METRONOME =    3
+    ACTIVE_METRONOME =    3
 
+# Main class for the PyTempo MPAS app
 class MPASApp(QtGui.QMainWindow):
     def __init__(self):
         super(MPASApp, self).__init__()
         
-        # Global variables
+        # Current mode variable
         self.mode = Mode.MAIN_MENU
+        
+        # Mouse position x/y
         self.mouse = [0, 0]
+        
+        # Current detected BPM
         self.bpm = 0.0
         
-        self.metro = LiveMetronome()
+        # The active metronome class instance
+        self.metro = ActiveMetronome()
         
+        # Audio handler class instance
         self.audioHandler = AudioHandler(self.metro.newBlock)
+        
+        # Set metronome audio handler reference
+        self.metro.setAudioHandlerRef(self.audioHandler)
 
+        # Renderer class instance
         self.renderer = Renderer()
         
-        self.tempoButton = Button(900, 400, 380, 60, "Tempo Detection", False)
-        self.metroButton = Button(900, 500, 380, 60, "Live Metronome", False)
+        # Main menu buttons
+        self.tempoButton = Button(900, 400, 420, 60, "Tempo Detection", False)
+        self.metroButton = Button(900, 500, 420, 60, "Active Metronome", False)
         self.backButton = Button(10, 10, 130, 60, "Back", False)
         
+        # Initialise the GUI
         self.initUI()
         
+        # Start the update timer
         self.timer = QTimer()
         self.timer.timeout.connect(self.tick)
         self.timer.start(16)
         
+        # Enable mouse tracking
         self.setMouseTracking(True)
-        
+       
+    # Initialises the GUI
     def initUI(self):
         self.setGeometry(300, 300, 1600, 1200)
         self.setWindowTitle('MPAS Visual Metronome')
         self.show()
         
+    # Called when the window needs to be re-drawn
     def paintEvent(self, e):
+        # Acquire the QPainter instance
         qp = QtGui.QPainter()
         qp.begin(self)
         
@@ -60,12 +79,12 @@ class MPASApp(QtGui.QMainWindow):
             self.renderer.renderTempoDetect(qp, energyQueue, peakQueue, self.audioHandler.energyAverage, self.bpm, self.backButton)
         
         # Live Metronome
-        elif self.mode == Mode.LIVE_METRONOME:
-            self.renderer.renderLiveMetronome(qp, self.backButton, self.metro)
+        elif self.mode == Mode.ACTIVE_METRONOME:
+            self.renderer.renderActiveMetronome(qp, self.backButton, self.metro)
         
         qp.end()
         
-    # Update step
+    # Update timer fired
     def tick(self):
         # Check mouse position against buttons
         if self.mode == Mode.MAIN_MENU:
@@ -73,41 +92,50 @@ class MPASApp(QtGui.QMainWindow):
             self.metroButton.checkHover(self.mouse)
         elif self.mode == Mode.TEMPO_DETECT:
             self.backButton.checkHover(self.mouse)
-        elif self.mode == Mode.LIVE_METRONOME:
+        elif self.mode == Mode.ACTIVE_METRONOME:
             self.backButton.checkHover(self.mouse)
             self.metro.checkHover(self.mouse)
     
         # Perform processing
         if self.mode == Mode.TEMPO_DETECT:
             self.audioHandler.calculateTempo(self)
-        elif self.mode == Mode.LIVE_METRONOME:
+        elif self.mode == Mode.ACTIVE_METRONOME:
             self.metro.peakQueue = copy.deepcopy(self.audioHandler.peakQueue)
             self.metro.energyQueue = copy.deepcopy(self.audioHandler.energyQueue)
     
         # Re-draw the UI
         self.repaint()
         
+    # Called to handle window close events
     def closeEvent(self, event):
         self.audioHandler.close()
         
+    # Called to handle mouse movement
     def mouseMoveEvent(self, event):
+        # Update mouse x and y position values
         self.mouse = [event.pos().x(), event.pos().y()]
         
+    # Called to handle mouse clicks
     def mousePressEvent(self, QMouseEvent):
+        # Handle clicks in main menu mode
         if self.mode == Mode.MAIN_MENU:
             if self.tempoButton.hover:
+                # Change to tempo detect mode
                 self.mode = Mode.TEMPO_DETECT
                 self.tempoButton.hover = False
             elif self.metroButton.hover:
-                self.mode = Mode.LIVE_METRONOME
+                # Change to active metronome mode
+                self.mode = Mode.ACTIVE_METRONOME
                 self.metroButton.hover = False
+                self.metro.active = True
                 
         else:
             if self.backButton.hover:
                 self.mode = Mode.MAIN_MENU
                 self.backButton.hover = False
+                self.metro.active = False
                 
-        if self.mode == Mode.LIVE_METRONOME:
+        if self.mode == Mode.ACTIVE_METRONOME:
             self.metro.mousePressEvent()
     
         
