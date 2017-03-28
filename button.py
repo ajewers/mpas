@@ -44,6 +44,7 @@ class Button():
             qp.drawRect(self.x, self.y, self.width, self.height)
             
         # Render the button text
+        qp.setFont(QFont("Arial", 18, 1, False))
         qp.drawText(self.x + 10, self.y, self.width, self.height, 0, self.text)
         
     # Draws this button in small size
@@ -56,5 +57,6 @@ class Button():
             qp.drawRect(self.x, self.y, self.width, self.height)
             
         # Render the button text
+        qp.setFont(QFont("Arial", 14, 1, False))
         qp.drawText(self.x + 10, self.y, self.width, self.height, 0, self.text)
         

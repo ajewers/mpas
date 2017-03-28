@@ -43,7 +43,7 @@ class MPASApp(QtGui.QMainWindow):
         # Main menu buttons
         self.tempoButton = Button(900, 400, 420, 60, "Tempo Detection", False)
         self.metroButton = Button(900, 500, 420, 60, "Active Metronome", False)
-        self.backButton = Button(10, 10, 130, 60, "Back", False)
+        self.backButton = Button(20, 20, 130, 60, "Back", False)
         
         # Initialise the GUI
         self.initUI()
@@ -58,7 +58,7 @@ class MPASApp(QtGui.QMainWindow):
        
     # Initialises the GUI
     def initUI(self):
-        self.setGeometry(300, 300, 1600, 1200)
+        self.setGeometry(300, 300, 1600, 900)
         self.setWindowTitle('MPAS Visual Metronome')
         self.show()
         

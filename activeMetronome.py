@@ -26,10 +26,10 @@ class ActiveMetronome():#
         self.count = self.beatInterval
         
         # Tempo adjust buttons
-        self.tempoUpButton = Button(1200, 10, 60, 60, "+", True)
-        self.tempoUpPlusButton = Button(1330, 10, 80, 60, "++", True)
-        self.tempoDownButton = Button(1200, 210, 60, 60, "-", True)
-        self.tempoDownPlusButton = Button(1330, 210, 80, 60, " --", True)
+        self.tempoUpButton = Button(1250, 30, 70, 40, "+ 1", True)
+        self.tempoUpPlusButton = Button(1330, 30, 90, 40, "+ 10", True)
+        self.tempoDownButton = Button(1250, 80, 70, 40, "- 1", True)
+        self.tempoDownPlusButton = Button(1330, 80, 90, 40, " - 10", True)
         
         # Active flag to enable/disable metronome
         self.active = False
