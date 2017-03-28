@@ -2,7 +2,7 @@ import sys
 import copy
 import math
 from PyQt4 import QtGui, QtCore
-from PyQt4.QtGui import QPen, QFont
+from PyQt4.QtGui import QPen, QFont, QColor
 
 class Renderer():
     def renderMainMenu(self, qp, tempoButton, metroButton):
@@ -53,13 +53,18 @@ class Renderer():
             
             qp.drawLine(800 - (i * 10), 700, 800 - (i * 10), 700 - height)
         
+        # Draw parallel horizontal lines for timeline
         qp.setPen(QPen(QtCore.Qt.black, 10))
         qp.drawLine(10, 700, 1590, 700)
-        qp.drawLine(800, 400, 800, 700)
-        
         qp.drawLine(10, 800, 1590, 800)
+        
+        # Draw current instant dotted line
+        qp.setPen(QPen(QtCore.Qt.black, 10, QtCore.Qt.DashLine))
+        qp.drawLine(800, 400, 800, 700)
         qp.drawLine(800, 800, 800, 1100)
         
+        
+        qp.setPen(QPen(QtCore.Qt.black, 10))
         for i, p in enumerate(metro.peakQueue):
             if i > 85:
                 break
@@ -73,11 +78,11 @@ class Renderer():
                     if math.fabs(diff) < 3:
                         qp.setPen(QPen(QtCore.Qt.green, 10))
                     elif math.fabs(diff) < 10:
-                        qp.setPen(QPen(QtCore.Qt.darkYellow, 10))
+                        qp.setPen(QPen(QColor(255, 174, 0), 10))
                     else:
                         qp.setPen(QPen(QtCore.Qt.red, 10))
                         
-                    qp.drawLine(x, 700, x, 740)
+                    qp.drawLine(x, 710, x, 740)
                     qp.drawLine(x - (diff * 10), 760, x - (diff * 10), 800)
                     
                     qp.setPen(QPen(QtCore.Qt.black, 10))
