@@ -94,9 +94,15 @@ Figure \ref{fig:ActiveMetronomeScreenshot} shows the user interface for the acti
 		\label{fig:ActiveMetronomeScreenshot}
 	\end{center}
 \end{figure}
+
+
 \subsection{Code Structure}
+The software is organised into a number \textit{.py} code files, organised logically according to object-oriented programming (OOP) practices wherever possible. One extra file, `\textit{MetroClick.wav}' is provided along with the code, and contains the metronome sound. The main file is \textit{MPAS.py}, containing the entry point for the application. \textit{audioHandler.py} contains the code related to managing the PyAudio streams and other audio processing routines such as peak detection. The remaining files encapsulate individual elements of the programming, including the active metronome data in \textit{activeMetronome.py}, the routines for drawing the different UIs on the screen in \textit{renderer.py} and an encapsulation of a button component in \textit{button.py}.
+
 \subsection{Running the Software}
 \textit{PyTempo} can be run from the command line using Python 2.7, provided that the PyAudio and PyQt packages are installed. \textit{PyTempo} is also provided as a compiled binary executable for Windows, and can be run in this format without the PyAudio or PyQt frameworks available.
+
 \section{System Evaluation and Future Work}
+This guide accompanies the first version of PyTempo, which makes good headway in trying to achieve the system's aims. However a number of improvements could be made for future versions. The peak detection method is effective, however some more complex, higher level processing of the detected peaks could help to better detect tempo from more complex and less regular rhythms. Some pre-processing could also be applied to separate the incoming audio into grouped frequency components and isolate elements important to the beat, perhaps based on a target instrument selected by the user. The tempo estimation could potentially be improved through the use of a more in-depth averaging technique such as Kalman filtering.
 
 \end{document}
