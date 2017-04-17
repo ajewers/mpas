@@ -34,7 +34,7 @@
 \begin{document}
 \maketitle
 \tableofcontents
-\newpage\textsl{•}
+\newpage
 \section{Executive Summary}
 This reference guide provides information about the `\textit{PyTempo}' tempo-detection and active-metronome performance analysis system, including details of the implementation and underlying theory, as well as notes on using the software. \textit{Pytempo} provides a musician with access to two different functionalities designed to be useful whilst practising their instrument. Firstly the system analyses the sound of their performance and attempts to detect the tempo. This helps performers learn and practice playing at a specific tempo whilst unaccompanied. The second function is an active-metronome system, whereby a user can select a tempo and the system will supply a metronome at that tempo, whilst also detecting beats in the users performance and providing a visual comparison of the accuracy of these in relation to the metronome.
 
@@ -54,7 +54,16 @@ where $M$ is the number of samples in a chunk. In order to detect peaks the syst
 	E > T\Bigg(\frac{1}{N}\sum_{i=1}^{N}E_i\Bigg)
 \end{equation}
 
-In order to give the best chance of accurately detecting the peaks, the threshold value must vary over time depending on the energy content of the signal. In order to do this the threshold is calculated from the variance of the energy values using a linear regression technique.
+In order to give the best chance of accurately detecting the peaks, the threshold value must vary over time depending on the energy content of the signal. to achieve this the threshold is calculated from the variance of the energy values using a linear regression technique\cite{BeatDetection}. The variance is given in equation \ref{Variance}, and the specific linear regression used is given in equation \ref{LinearRegression}.
+
+\begin{equation} \label{Variance}
+	V = \frac{1}{N}\sum_{i=0}^{N}(E_i - E_{avg})
+\end{equation}
+
+\begin{equation} \label{LinearRegression}
+	T = -0.0025V + 1.5
+\end{equation}
+
 
 \subsection{Tempo Detection}
 The first of PyTempo's two operating modes attempts to calculate a local tempo value for what the performer is currently playing. To do this using the peak/beat detection method outlined in section  \ref{BeatDetection} the software must compare the intervals between subsequent detected beats. First an average of the inter-beat intervals is acquired using equation \ref{eq:IntervalAverage},
@@ -96,6 +105,10 @@ The software is organised into a number \textit{.py} code files, organised logic
 \textit{PyTempo} can be run from the command line using Python 2.7, provided that the PyAudio and PyQt packages are installed. \textit{PyTempo} is also provided as a compiled binary executable for Windows, and can be run in this format without the PyAudio or PyQt frameworks available.
 
 \section{System Evaluation and Future Work}
-This guide accompanies the first version of PyTempo, which makes good headway in trying to achieve the system's aims. However a number of improvements could be made for future versions. The peak detection method is effective, however some more complex, higher level processing of the detected peaks could help to better detect tempo from more complex and less regular rhythms. Some pre-processing could also be applied to separate the incoming audio into grouped frequency components and isolate elements important to the beat, perhaps based on a target instrument selected by the user. The tempo estimation could potentially be improved through the use of a more in-depth averaging technique such as Kalman filtering.
+This guide accompanies a first version of PyTempo, which makes good headway in trying to achieve the system's aims. However a number of improvements could be made for future versions. Noise control and volume normalisation techniques could be applied prior to peak detection to improve accuracy. Determining tempo from a simple average of inter-peak intervals is effective when playing rhythms which fall strongly on each beat, however the use of more complex, higher level processing of the detected peaks could help to better detect tempo from more complex and less regular rhythms. Some pre-processing could also be applied to separate the incoming audio into grouped frequency components and isolate elements important to the beat, perhaps based on a target instrument selected by the user. This could filter out unrelated sound, improving accuracy. The tempo estimation could also potentially be improved through the use of a more in-depth averaging technique such as Kalman filtering, which adjusts more quickly over time than a mean-based average.
+
+\begin{thebibliography}{9}
+\bibitem{BeatDetection} GameDev. \textit{Beat Detection Algorithms},  archive.gamedev.net. [Online]. Available: http://archive.gamedev.net/archive/reference/programming/features/beatdetection/ [Accessed: Apr. 17, 2017]
+\end{thebibliography}
 
 \end{document}
